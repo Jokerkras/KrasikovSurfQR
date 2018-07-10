@@ -1,6 +1,5 @@
 package com.example.krasm.krasikovqrsurf.activity
 
-import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.support.v7.app.AppCompatActivity
@@ -9,7 +8,10 @@ import android.support.v7.app.AlertDialog
 import android.util.Log
 import android.widget.ImageView
 import com.example.krasm.krasikovqrsurf.R
-import com.example.krasm.krasikovqrsurf.network.INetwork
+import com.example.krasm.krasikovqrsurf.network.QRApi
+import com.example.krasm.krasikovqrsurf.repo.QRRepo
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_create_qr.*
 import okhttp3.OkHttpClient
 import okhttp3.ResponseBody
@@ -27,8 +29,8 @@ class CreateQRActivity : AppCompatActivity() {
         create_button.setOnClickListener({downloadQRCode()})
     }
 
-    fun showResponse(response: Response<ResponseBody>?){
-        var inst: InputStream = response?.body()!!.byteStream()
+    fun showResponse(response: ResponseBody){
+        var inst: InputStream = response.byteStream()
         var bmap: Bitmap = BitmapFactory.decodeStream(inst)
 
         var imageView = ImageView(this)
@@ -37,33 +39,19 @@ class CreateQRActivity : AppCompatActivity() {
         var dlg = AlertDialog.Builder(this)
                 .setView(imageView)
                 .setTitle("You'r QR code")
+                .setPositiveButton("OK", {dialog, which ->  dialog.cancel()})
                 .show()
     }
 
     fun downloadQRCode(){
         val okHttpClient = OkHttpClient()
-        val retrofit = Retrofit.Builder()
-                .baseUrl("https://api.qrserver.com/v1/")
-                .client(okHttpClient)
-                .build()
+        val qrRepo = QRRepo(QRApi.create())
 
-        val service: INetwork = retrofit.create(INetwork::class.java)
-
-        val call: Call<ResponseBody> = service.getQR(content_for_qr.text.toString(), "400x400")
-
-        try {
-            call.enqueue(object: Callback<ResponseBody> {
-                override fun onFailure(call: Call<ResponseBody>?, t: Throwable?) {
-                    Log.d("fail",t.toString())
-                }
-
-                override fun onResponse(call: Call<ResponseBody>?, response: Response<ResponseBody>?) {
-                    showResponse(response)
-                }
-
-            })
-        } catch (e:Exception) {
-            e.printStackTrace()
-        }
+        qrRepo.createQR(content_for_qr.text.toString())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeOn(Schedulers.io())
+                .subscribe({
+                    result -> showResponse(result)
+                }, {error -> error.printStackTrace()})
     }
 }
