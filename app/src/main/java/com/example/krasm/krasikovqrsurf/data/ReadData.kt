@@ -1,12 +1,14 @@
 package com.example.krasm.krasikovqrsurf.data
 
-data class ReadData (
-    val seq: Int,
-    val data: String?,
-    val error: String?
+import com.google.gson.annotations.SerializedName
+
+data class Symbol (
+        @SerializedName("seq")val seq: Int,
+        @SerializedName("data")val data: String?,
+        @SerializedName("error")val error: String?
 )
 
 data class FirstJSON (
-    val type: String,
-    val symbol: Array<ReadData>
+        @SerializedName("type") val type: String,
+        @SerializedName("symbol") val symbol: List<Symbol>
     )

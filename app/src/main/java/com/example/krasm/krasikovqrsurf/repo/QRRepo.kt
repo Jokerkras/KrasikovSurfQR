@@ -11,7 +11,7 @@ class QRRepo(val qrApi: QRApi) {
         return qrApi.getQR(text, "400x400")
     }
 
-    fun readQR(file: MultipartBody.Part): Observable<FirstJSON> {
+    fun readQR(file: MultipartBody.Part): Observable<Array<FirstJSON>> {
         return qrApi.uploadQR(file)
     }
 }

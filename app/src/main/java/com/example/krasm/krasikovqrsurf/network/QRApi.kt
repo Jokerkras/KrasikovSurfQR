@@ -20,8 +20,8 @@ interface QRApi {
     fun getQR(@Query("data") dataString: String,@Query("size") sizeString: String): Observable<ResponseBody>
 
     @Multipart
-    @POST("create-qr-code/")
-    fun uploadQR(@Part file: MultipartBody.Part): Observable<FirstJSON>
+    @POST("read-qr-code/")
+    fun uploadQR(@Part file: MultipartBody.Part): Observable<Array<FirstJSON>>
 
     companion object Factory {
 
@@ -29,7 +29,7 @@ interface QRApi {
             val retrofit = Retrofit.Builder()
                     .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                     .addConverterFactory(GsonConverterFactory.create())
-                    .baseUrl("https://api.qrserver.com/v1/")
+                    .baseUrl("http://api.qrserver.com/v1/")
                     .build()
 
             return retrofit.create(QRApi::class.java)
